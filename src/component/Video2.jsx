@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import Janus from "../janus.js";
 import { useDispatch } from "react-redux";
+import styles from "./Video2.module.css";
 
-const JanusWebRTC = ({ studyId }) => {
+const JanusWebRTC = ({ studyId, roomCode }) => {
   const dispatch = useDispatch();
 
   const [isStarted, setIsStarted] = useState(false);
   const [username, setUsername] = useState("");
 
+  const mainVideoRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null); // 상대방 비디오를 위한 ref
 
@@ -21,6 +23,8 @@ const JanusWebRTC = ({ studyId }) => {
   const serverUrl = "https://janus.jsflux.co.kr/janus";
 
   useEffect(() => {
+    console.log("roomId : ", roomId);
+
     if (!isStarted) return;
 
     Janus.init({
@@ -206,6 +210,15 @@ const JanusWebRTC = ({ studyId }) => {
     });
   };
 
+  const videoClick = (videoRef) =>{
+    console.log("click");
+    
+    if (videoRef.current && mainVideoRef.current) {
+      mainVideoRef.current.srcObject = videoRef.current.srcObject;
+    }
+    
+  }
+
   return (
     <div>
       <h2>Janus WebRTC 1:1 화상채팅</h2>
@@ -220,37 +233,31 @@ const JanusWebRTC = ({ studyId }) => {
           <button onClick={joinRoom}>방 참가</button>
         </>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <h3>내 화면</h3>
+        <div className={styles.videoContainer}>
+          <h3>메인 화면</h3>
           <video
-            ref={localVideoRef}
+            ref={mainVideoRef}
             autoPlay
             playsInline
-            muted
-            style={{
-              width: "300px",
-              height: "auto",
-              border: "1px solid black",
-            }}
+            muted // 내꺼 소리끄기
+            className={styles.mainVideo}
           />
-
-          <h3>상대 화면</h3>
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            style={{
-              width: "300px",
-              height: "auto",
-              border: "1px solid black",
-            }}
-          />
+          <div className={styles.smallVideoContainer}>
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              className={styles.smallVideo}
+              onClick={() => videoClick(localVideoRef)}
+            />
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className={styles.smallVideo}
+              onClick={() => videoClick(remoteVideoRef)}
+            />
+          </div>
         </div>
       )}
     </div>
