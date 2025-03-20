@@ -98,6 +98,10 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
                 if (localVideoRef.current) {
                   localVideoRef.current.srcObject = stream;
                 }
+
+                if(mainVideoRef.current){
+                  mainVideoRef.current.srcObject = stream;
+                }
               },
               oncleanup: function () {
                 mystream = null;

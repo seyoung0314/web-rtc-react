@@ -3,6 +3,7 @@
   box-sizing: border-box;
 }
 .wrap{
+  padding: 0 5%;
   display: flex;
   border: 2px solid blue;
   width: 100%;
