@@ -8,6 +8,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
 
   const [isStarted, setIsStarted] = useState(false);
   const [username, setUsername] = useState("");
+  const [title, setTitle] = useState("내 화면");
 
   const mainVideoRef = useRef(null);
   const localVideoRef = useRef(null);
@@ -215,12 +216,17 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   };
 
   const videoClick = (videoRef) =>{
-    console.log("click");
-    
+    setTitle("상대 화면");
     if (videoRef.current && mainVideoRef.current) {
       mainVideoRef.current.srcObject = videoRef.current.srcObject;
     }
-    
+  }
+
+  const myVideoClick = (videoRef) =>{
+    setTitle("내 화면");
+    if (videoRef.current && mainVideoRef.current) {
+      mainVideoRef.current.srcObject = videoRef.current.srcObject;
+    }
   }
 
   return (
@@ -238,7 +244,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
         </>
       ) : (
         <div className={styles.videoContainer}>
-          <h3>메인 화면</h3>
+          <h3>{title}</h3>
           <video
             ref={mainVideoRef}
             autoPlay
@@ -252,7 +258,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
               autoPlay
               playsInline
               className={styles.smallVideo}
-              onClick={() => videoClick(localVideoRef)}
+              onClick={() => myVideoClick(localVideoRef)}
             />
             <video
               ref={remoteVideoRef}
