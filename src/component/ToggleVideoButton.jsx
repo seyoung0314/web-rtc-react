@@ -1,12 +1,21 @@
 import React, { useMemo } from "react";
+import { Video,VideoOff } from 'lucide-react';
 
 export const ToggleVideoButton = React.memo(({ isVideoMuted, onClick }) => {
 
   console.log("toggled : " ,isVideoMuted);
   
   return (
-    <button onClick={onClick}>
-      {isVideoMuted ? "카메라 켜기" : "카메라 끄기"}
+    <button onClick={onClick} style={{ display: "flex", alignItems: "center" }}>
+      {isVideoMuted ? (
+        <>
+          <VideoOff size={24} color="red" /> 
+        </>
+      ) : (
+        <>
+          <Video size={24} color="green" /> 
+        </>
+      )}
     </button>
   );
 });

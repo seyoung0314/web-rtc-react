@@ -19,9 +19,9 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   const remoteVideoRef = useRef(null); // 상대방 비디오를 위한 ref
   const mainVideoTitleRef = useRef(null); // 제목을 위한 ref 추가
 
-  let janus = null;
-  let storePlugin = null;
-  let mystream = null;
+  const janusRef = useRef(null);
+  const storePluginRef = useRef(null);
+  const mystreamRef = useRef(null);
 
   const opaqueId = "videoroom-test-" + Janus.randomString(12);
   const roomId = 1234;
@@ -41,14 +41,14 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
           return;
         }
 
-        janus = new Janus({
+        janusRef.current = new Janus({
           server: serverUrl,
           success: function () {
-            janus.attach({
+            janusRef.current.attach({
               plugin: "janus.plugin.videoroom",
               opaqueId: opaqueId,
               success: function (pluginHandle) {
-                storePlugin = pluginHandle;
+                storePluginRef.current = pluginHandle;
                 let register = pin
                   ? {
                       request: "join",
@@ -95,11 +95,11 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
                 }
 
                 if (jsep) {
-                  storePlugin.handleRemoteJsep({ jsep: jsep });
+                  storePluginRef.current.handleRemoteJsep({ jsep: jsep });
                 }
               },
               onlocalstream: function (stream) {
-                mystream = stream;
+                mystreamRef.current = stream;
                 if (localVideoRef.current) {
                   localVideoRef.current.srcObject = stream;
                 }
@@ -124,8 +124,8 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
     });
 
     return () => {
-      if (janus) {
-        janus.destroy();
+      if (janusRef.current) {
+        janusRef.current.destroy();
       }
     };
   }, [isStarted]);
@@ -148,11 +148,11 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = stream;
           }
-          mystream = stream;
+          mystreamRef.current = stream;
 
-          console.log("publish storePlugin", storePlugin);
+          console.log("publish storePlugin", storePluginRef.current);
 
-          storePlugin.createOffer({
+          storePluginRef.current.createOffer({
             stream: stream,
             success: function (jsep) {
               let body = {
@@ -161,7 +161,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
                 audio: true,
                 video: true,
               };
-              storePlugin.send({ message: body, jsep: jsep });
+              storePluginRef.current.send({ message: body, jsep: jsep });
             },
             error: function (error) {
               Janus.error("WebRTC error:", error);
@@ -175,7 +175,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   };
 
   const newRemoteFeed = (id, display) => {
-    janus.attach({
+    janusRef.current.attach({
       plugin: "janus.plugin.videoroom",
       opaqueId: opaqueId,
       success: function (pluginHandle) {
@@ -222,36 +222,34 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   };
 
   const videoClick = (videoRef) => {
-    if (mainVideoTitleRef.current) {
-      mainVideoTitleRef.current.innerText = "상대 화면"; // 상태 업데이트 없이 변경
-    }
+    setTitle("상대화면");
     if (videoRef.current && mainVideoRef.current) {
       mainVideoRef.current.srcObject = videoRef.current.srcObject;
     }
   };
   
   const myVideoClick = (videoRef) => {
-    if (mainVideoTitleRef.current) {
-      mainVideoTitleRef.current.innerText = "내 화면"; // 상태 업데이트 없이 변경
-    }
+    setTitle("내화면");
     if (videoRef.current && mainVideoRef.current) {
       mainVideoRef.current.srcObject = videoRef.current.srcObject;
     }
   };
 
   const toggleVideoHandler = () => {
-    console.log("storePlugin", storePlugin.isVideoMuted());
-    if (!storePlugin) {
+    console.log("storePlugin", storePluginRef.current.isVideoMuted());
+    if (!storePluginRef.current) {
       console.error("storePlugin is not initialized yet.");
       return;
     }
 
-    if (storePlugin.isVideoMuted()) {
+    if (storePluginRef.current.isVideoMuted()) {
       console.log("비디오를 켭니다");
-      storePlugin.unmuteVideo(); // 비디오 켜기
+      setIsVideoMuted(false);
+      storePluginRef.current.unmuteVideo(); // 비디오 켜기
     } else {
       console.log("비디오를 끕니다");
-      storePlugin.muteVideo(); // 비디오 끄기
+      setIsVideoMuted(true);
+      storePluginRef.current.muteVideo(); // 비디오 끄기
     }
   };
 
@@ -270,9 +268,9 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
         </>
       ) : (
         <div className={styles.videoContainer}>
-         <h3 ref={mainVideoTitleRef}>내 화면</h3>
+         <h3>{title}</h3>
           <ToggleVideoButton
-             isVideoMuted={storePlugin ? storePlugin.isVideoMuted() : false}
+             isVideoMuted={isVideoMuted}
             onClick={toggleVideoHandler}
           />
           <VideoView
