@@ -2,17 +2,22 @@ import React, { useEffect, useRef, useState } from "react";
 import Janus from "../janus.js";
 import { useDispatch } from "react-redux";
 import styles from "./Video2.module.css";
+import { ToggleVideoButton } from "./ToggleVideoButton.jsx";
+import VideoView from "./VideoView"; // Video 컴포넌트 import
 
 const JanusWebRTC = ({ studyId, roomCode }) => {
   const dispatch = useDispatch();
-
   const [isStarted, setIsStarted] = useState(false);
   const [username, setUsername] = useState("");
   const [title, setTitle] = useState("내 화면");
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+
 
   const mainVideoRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null); // 상대방 비디오를 위한 ref
+  const mainVideoTitleRef = useRef(null); // 제목을 위한 ref 추가
 
   let janus = null;
   let storePlugin = null;
@@ -44,7 +49,6 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
               opaqueId: opaqueId,
               success: function (pluginHandle) {
                 storePlugin = pluginHandle;
-
                 let register = pin
                   ? {
                       request: "join",
@@ -59,8 +63,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
                       ptype: "publisher",
                       display: username,
                     };
-
-                storePlugin.send({ message: register });
+                pluginHandle.send({ message: register });
               },
               error: function (error) {
                 Janus.error("Error attaching plugin...", error);
@@ -96,11 +99,12 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
                 }
               },
               onlocalstream: function (stream) {
+                mystream = stream;
                 if (localVideoRef.current) {
                   localVideoRef.current.srcObject = stream;
                 }
 
-                if(mainVideoRef.current){
+                if (mainVideoRef.current) {
                   mainVideoRef.current.srcObject = stream;
                 }
               },
@@ -145,6 +149,8 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
             localVideoRef.current.srcObject = stream;
           }
           mystream = stream;
+
+          console.log("publish storePlugin", storePlugin);
 
           storePlugin.createOffer({
             stream: stream,
@@ -215,19 +221,39 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
     });
   };
 
-  const videoClick = (videoRef) =>{
-    setTitle("상대 화면");
+  const videoClick = (videoRef) => {
+    if (mainVideoTitleRef.current) {
+      mainVideoTitleRef.current.innerText = "상대 화면"; // 상태 업데이트 없이 변경
+    }
     if (videoRef.current && mainVideoRef.current) {
       mainVideoRef.current.srcObject = videoRef.current.srcObject;
     }
-  }
+  };
+  
+  const myVideoClick = (videoRef) => {
+    if (mainVideoTitleRef.current) {
+      mainVideoTitleRef.current.innerText = "내 화면"; // 상태 업데이트 없이 변경
+    }
+    if (videoRef.current && mainVideoRef.current) {
+      mainVideoRef.current.srcObject = videoRef.current.srcObject;
+    }
+  };
 
-  const myVideoClick = (videoRef) =>{
-    setTitle("내 화면");
-    if (videoRef.current && mainVideoRef.current) {
-      mainVideoRef.current.srcObject = videoRef.current.srcObject;
+  const toggleVideoHandler = () => {
+    console.log("storePlugin", storePlugin.isVideoMuted());
+    if (!storePlugin) {
+      console.error("storePlugin is not initialized yet.");
+      return;
     }
-  }
+
+    if (storePlugin.isVideoMuted()) {
+      console.log("비디오를 켭니다");
+      storePlugin.unmuteVideo(); // 비디오 켜기
+    } else {
+      console.log("비디오를 끕니다");
+      storePlugin.muteVideo(); // 비디오 끄기
+    }
+  };
 
   return (
     <div>
@@ -244,26 +270,29 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
         </>
       ) : (
         <div className={styles.videoContainer}>
-          <h3>{title}</h3>
-          <video
+         <h3 ref={mainVideoTitleRef}>내 화면</h3>
+          <ToggleVideoButton
+             isVideoMuted={storePlugin ? storePlugin.isVideoMuted() : false}
+            onClick={toggleVideoHandler}
+          />
+          <VideoView
             ref={mainVideoRef}
-            autoPlay
-            playsInline
-            muted // 내꺼 소리끄기
+            videoType="main"
+            isMuted={true}
             className={styles.mainVideo}
           />
           <div className={styles.smallVideoContainer}>
-            <video
+            <VideoView
               ref={localVideoRef}
-              autoPlay
-              playsInline
+              videoType="local"
+              isMuted={true}
               className={styles.smallVideo}
               onClick={() => myVideoClick(localVideoRef)}
             />
-            <video
+            <VideoView
               ref={remoteVideoRef}
-              autoPlay
-              playsInline
+              videoType="remote"
+              isMuted={false}
               className={styles.smallVideo}
               onClick={() => videoClick(remoteVideoRef)}
             />
