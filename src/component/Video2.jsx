@@ -3,6 +3,7 @@ import Janus from "../janus.js";
 import { useDispatch } from "react-redux";
 import styles from "./Video2.module.css";
 import { ToggleVideoButton } from "./ToggleVideoButton.jsx";
+import { ToggleAudioButton } from "./ToggleAudioButton.jsx";
 import VideoView from "./VideoView"; // Video 컴포넌트 import
 
 const JanusWebRTC = ({ studyId, roomCode }) => {
@@ -12,7 +13,6 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   const [title, setTitle] = useState("내 화면");
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
-
 
   const mainVideoRef = useRef(null);
   const localVideoRef = useRef(null);
@@ -227,7 +227,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
       mainVideoRef.current.srcObject = videoRef.current.srcObject;
     }
   };
-  
+
   const myVideoClick = (videoRef) => {
     setTitle("내화면");
     if (videoRef.current && mainVideoRef.current) {
@@ -236,7 +236,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   };
 
   const toggleVideoHandler = () => {
-    console.log("storePlugin", storePluginRef.current.isVideoMuted());
+    console.log("isVideoMuted", storePluginRef.current.isVideoMuted());
     if (!storePluginRef.current) {
       console.error("storePlugin is not initialized yet.");
       return;
@@ -250,6 +250,24 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
       console.log("비디오를 끕니다");
       setIsVideoMuted(true);
       storePluginRef.current.muteVideo(); // 비디오 끄기
+    }
+  };
+
+  const toggleAudioHandler = () => {
+    console.log("isAudioMuted", storePluginRef.current.isAudioMuted());
+    if (!storePluginRef.current) {
+      console.error("storePlugin is not initialized yet.");
+      return;
+    }
+
+    if (storePluginRef.current.isAudioMuted()) {
+      console.log("오디오를 켭니다");
+      setIsAudioMuted(false);
+      storePluginRef.current.unmuteAudio(); // 오디오 켜기
+    } else {
+      console.log("오디오를 끕니다");
+      setIsAudioMuted(true);
+      storePluginRef.current.muteAudio(); // 오디오 끄기
     }
   };
 
@@ -268,10 +286,14 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
         </>
       ) : (
         <div className={styles.videoContainer}>
-         <h3>{title}</h3>
+          <h3>{title}</h3>
           <ToggleVideoButton
-             isVideoMuted={isVideoMuted}
+            isVideoMuted={isVideoMuted}
             onClick={toggleVideoHandler}
+          />
+          <ToggleAudioButton
+            isAudioMuted={isAudioMuted}
+            onClick={toggleAudioHandler}
           />
           <VideoView
             ref={mainVideoRef}

@@ -2,8 +2,6 @@ import React, { useMemo } from "react";
 import { Video,VideoOff } from 'lucide-react';
 
 export const ToggleVideoButton = React.memo(({ isVideoMuted, onClick }) => {
-
-  console.log("toggled : " ,isVideoMuted);
   
   return (
     <button onClick={onClick} style={{ display: "flex", alignItems: "center" }}>
