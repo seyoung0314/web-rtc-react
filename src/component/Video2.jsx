@@ -24,7 +24,7 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
   const mystreamRef = useRef(null);
 
   const opaqueId = "videoroom-test-" + Janus.randomString(12);
-  const roomId = 1234;
+  const roomId = 10001;
   const pin = null;
   const serverUrl = "https://janus.jsflux.co.kr/janus";
 
@@ -49,6 +49,22 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
               opaqueId: opaqueId,
               success: function (pluginHandle) {
                 storePluginRef.current = pluginHandle;
+
+                let createRoom = {
+                  request : "create",
+                  room : roomId,
+                  permanent : false,
+                  record: false,
+                  publishers: 2,
+                  bitrate : 128000,
+                  fir_freq : 10,
+                  ptype: "publisher",
+                  description: "test",
+                  is_private: false
+              }
+              pluginHandle.send({ message: createRoom });
+
+
                 let register = pin
                   ? {
                       request: "join",
@@ -69,6 +85,8 @@ const JanusWebRTC = ({ studyId, roomCode }) => {
                 Janus.error("Error attaching plugin...", error);
               },
               onmessage: function (msg, jsep) {
+                console.log(msg);
+                
                 let event = msg["videoroom"];
                 if (event === "joined") {
                   dispatch({

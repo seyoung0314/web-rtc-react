@@ -15,7 +15,7 @@ const JanusWebRTC = ({ studyId }) => {
   let mystream = null;
   
   const opaqueId = "videoroom-test-" + Janus.randomString(12);
-  const roomId = 1234;  // 예시로 roomId 설정 (실제 값은 적절하게 설정 필요)
+  const roomId = 10001;  // 예시로 roomId 설정 (실제 값은 적절하게 설정 필요)
   const pin = null;  // 필요시 PIN 설정
   const serverUrl = "https://janus.jsflux.co.kr/janus"; // Janus 서버 URL
 
