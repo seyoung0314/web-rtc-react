@@ -6,6 +6,7 @@ import { store } from "./store/index.js"; // store.js에서 내보낸 store
 import "./App.css";
 import VideoRoom from "./component/VideoRoom";
 import Video from "./component/Video";
+import OneVideo from "./component/OneVideo";
 import Chat from "./component/Chat";
 import Video2 from "./component/Video2";
 import TestApp from "./component/TestApp";
@@ -21,7 +22,8 @@ function App() {
         {/* <VideoRoom /> */}
         <div className="wrap">
           <div className="video-container">
-            <Video2 roomCode={roomId} />
+            {/* <Video2 roomCode={roomId} /> */}
+            <OneVideo roomCode={roomId} />
           </div>
           <div className="chat-container">
             <Chat />
